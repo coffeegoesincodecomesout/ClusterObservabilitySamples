@@ -1,1 +1,1 @@
-# ClusterObservabilityOperatorSamples
+# ClusterObservabilitySamples
