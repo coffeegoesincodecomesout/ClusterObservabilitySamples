@@ -1,0 +1,25 @@
+apiVersion: observability.openshift.io/v1alpha1
+kind: UIPlugin
+metadata:
+  name: dashboards
+spec:
+  type: Dashboards
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-prometheus-proxy
+  namespace: openshift-config-managed
+  labels:
+    console.openshift.io/dashboard-datasource: "true"
+data:
+  "dashboard-datasource.yaml": |-
+    kind: "Datasource"
+    metadata:
+      name: "cluster-prometheus-proxy"
+      project: "openshift-config-managed"
+    spec:
+      plugin:
+        kind: "prometheus"
+        spec:
+          direct_url: "https://prometheus-k8s.openshift-monitoring.svc.cluster.local:9091"
