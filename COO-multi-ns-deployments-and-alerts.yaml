@@ -88,7 +88,7 @@ spec:
     rules:
     - alert: VersionAlert
       for: 1m
-      expr: version{job="prometheus-coo-example-app"} > 0
+      expr: version{job="prometheus-coo-example-app", namespace="ns1-coo"} > 0
       labels:
         severity: warning
 ---
@@ -167,6 +167,6 @@ spec:
     rules:
     - alert: VersionAlert
       for: 1m
-      expr: version{job="prometheus-coo-example-app"} > 0
+      expr: version{job="prometheus-coo-example-app", namespace="ns2-coo"} > 0
       labels:
         severity: warning
