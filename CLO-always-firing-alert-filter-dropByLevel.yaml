@@ -76,6 +76,8 @@ spec:
     type: drop
     drop:
     - test:
+      - field: .log_type
+        matches: "application"
       - field: .message
         notMatches: "(?i)critical|error"
       - field: .level

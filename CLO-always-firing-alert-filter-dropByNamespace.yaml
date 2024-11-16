@@ -64,6 +64,7 @@ spec:
           - namespace: "ns-testapp-logalert"  
         excludes:
           - namespace: "ns-other-testapp-logalert"
+      type: application
   outputs:
   - name: default-lokistack
     type: lokiStack
