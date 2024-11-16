@@ -58,7 +58,7 @@ spec:
   serviceAccount:
     name: collector
   inputs:
-    - name: mylogs
+    - name: myapplogs
       application:
         includes:
           - namespace: "ns-testapp-logalert"  
@@ -82,7 +82,7 @@ spec:
   pipelines:
   - name: default-logstore
     inputRefs:
-    - application
+    - myapplogs
     - infrastructure
     outputRefs:
     - default-lokistack
