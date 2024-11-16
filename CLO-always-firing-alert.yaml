@@ -50,6 +50,8 @@ spec:
 apiVersion: observability.openshift.io/v1
 kind: ClusterLogForwarder
 metadata:
+  annotations:
+    observability.openshift.io/log-level: debug
   name: instance
   namespace: openshift-logging
 spec:
