@@ -88,7 +88,7 @@ spec:
     rules:
     - alert: VersionAlert
       for: 1m
-      expr: version{job="prometheus-coo-example-app", namespace="ns1-coo"} > 0
+      expr: version{job="prometheus-coo-example-app"} > 0
       labels:
         severity: warning
 ---
@@ -153,20 +153,3 @@ spec:
   selector:
     matchLabels:
       app: prometheus-coo-example-app
----
-apiVersion: monitoring.rhobs/v1
-kind: PrometheusRule
-metadata:
-  name: example-alert
-  namespace: ns2-coo
-  labels:
-    k8s-app: prometheus-coo-example-monitor
-spec:
-  groups:
-  - name: example
-    rules:
-    - alert: VersionAlert
-      for: 1m
-      expr: version{job="prometheus-coo-example-app", namespace="ns2-coo"} > 0
-      labels:
-        severity: warning
