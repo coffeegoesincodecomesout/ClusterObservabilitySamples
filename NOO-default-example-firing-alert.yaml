@@ -1,0 +1,112 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: netobserv
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: loki-s3
+  namespace: netobserv   
+stringData:
+  access_key_id: <>
+  access_key_secret: <>
+  bucketnames: s3-bucket-name
+  endpoint: https://s3.eu-central-1.amazonaws.com
+  region: eu-central-1
+---
+apiVersion: loki.grafana.com/v1
+kind: LokiStack
+metadata:
+  name: loki
+  namespace: netobserv   
+spec:
+  size: 1x.extra-small
+  storage:
+    schemas:
+    - version: v12
+      effectiveDate: '2022-06-01'
+    secret:
+      name: loki-s3
+      type: s3
+  storageClassName: gp3-csi  
+  tenants:
+    mode: openshift-network
+---
+apiVersion: flows.netobserv.io/v1beta2
+kind: FlowCollector
+metadata:
+  name: cluster
+spec:
+  namespace: netobserv
+  deploymentModel: Direct
+  agent:
+    type: eBPF                                
+    ebpf:
+      sampling: 50                            
+      logLevel: info
+      privileged: false
+      resources:
+        requests:
+          memory: 50Mi
+          cpu: 100m
+        limits:
+          memory: 800Mi
+  processor:               
+    logLevel: info
+    resources:
+      requests:
+        memory: 100Mi
+        cpu: 100m
+      limits:
+        memory: 800Mi
+    logTypes: Flows
+    advanced:
+      conversationEndTimeout: 10s
+      conversationHeartbeatInterval: 30s
+  loki:                     
+    mode: LokiStack         
+  consolePlugin:
+    register: true
+    logLevel: info
+    portNaming:
+      enable: true
+      portNames:
+        "3100": loki
+    quickFilters:            
+    - name: Applications
+      filter:
+        src_namespace!: 'openshift-,netobserv'
+        dst_namespace!: 'openshift-,netobserv'
+      default: true
+    - name: Infrastructure
+      filter:
+        src_namespace: 'openshift-,netobserv'
+        dst_namespace: 'openshift-,netobserv'
+    - name: Pods network
+      filter:
+        src_kind: 'Pod'
+        dst_kind: 'Pod'
+      default: true
+    - name: Services network
+      filter:
+        dst_kind: 'Service'
+---
+apiVersion: monitoring.openshift.io/v1
+kind: AlertingRule
+metadata:
+  name: netobserv-alerts
+  namespace: openshift-monitoring
+spec:
+  groups:
+  - name: NetObservAlerts
+    rules:
+    - alert: NetObservIncomingBandwidth
+      annotations:
+        message: |-
+          {{ $labels.job }}: incoming traffic exceeding 10 MBps for 30s on {{ $labels.DstK8S_OwnerType }} {{ $labels.DstK8S_OwnerName }} ({{ $labels.DstK8S_Namespace }}).
+        summary: "High incoming traffic."
+      expr: sum(rate(netobserv_workload_ingress_bytes_total {SrcK8S_Namespace="openshift-ingress"}[1m])) by (job, DstK8S_Namespace, DstK8S_OwnerName, DstK8S_OwnerType) > 10
+      for: 30s
+      labels:
+        severity: warning
